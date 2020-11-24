@@ -102,34 +102,34 @@ function getTimeRemaining(endtime) {
     // МОДАЛЬНОЕ ОКНО УРОК 43
 
     const modalTrigger = document.querySelectorAll('[data-modal]'),
-          modal = document.querySelector('.modal'),
-          modalCloseBtn = document.querySelector('[data-close]');
+          modal = document.querySelector('.modal');
+          //modalCloseBtn = document.querySelector('[data-close]');
           
     function openModal() {
-        // modal.classList.add('show');
-        // modal.classList.remove('hide');
-        modal.classList.toggle('show');
+         modal.classList.add('show');
+        modal.classList.remove('hide');
+        //modal.classList.toggle('show');
         document.body.style.overflow = 'hidden';
         clearInterval(modalTimeId);
      }
     
     modalTrigger.forEach(btn => {
-        btn.addEventListener('click',  openModal);
+        btn.addEventListener('click', openModal);
     });
     
    
     
     function closeModal() {
-        // modal.classList.add('hide');
-        // modal.classList.remove('show');
-        modal.classList.toggle('show');
+         modal.classList.add('hide');
+        modal.classList.remove('show');
+        //modal.classList.toggle('show');
         document.body.style.overflow = '';
     }
 
-    modalCloseBtn.addEventListener('click', closeModal);
+    //modalCloseBtn.addEventListener('click', closeModal);
 
     modal.addEventListener('click', (e) => {
-        if (e.target === modal) {  
+        if (e.target === modal || e.target.getAttribute('data-close') == '') {  
            closeModal();
        }
    });
@@ -142,7 +142,7 @@ function getTimeRemaining(endtime) {
 
    // Всплытие модального окна через опрделенное время
 
-   //const modalTimeId = setTimeout(openModal, 3000);
+   const modalTimeId = setTimeout(openModal, 50000);
 
    function showModalByScroll() {
     if (window.pageYOffset + document.documentElement.clientHeight >= document.documentElement.scrollHeight ) {
@@ -184,10 +184,6 @@ function getTimeRemaining(endtime) {
             }); 
            }
            
-           
-           this.classes.forEach((className) => {
-               element.classList.add(className);
-        });  
            element.innerHTML = `
             
                 <img src=${this.src} alt=${this.alt}>
@@ -215,6 +211,8 @@ function getTimeRemaining(endtime) {
         //  'big'
     );
 
+   
+
     div.render(); // Можно также сделать и без переменной, когда нужно это использовать только один раз. Просто: new MenuCard().render()
 
      new MenuCard(
@@ -236,8 +234,96 @@ function getTimeRemaining(endtime) {
          21,
          '.menu .container',
          'menu__item'
-    ).render();
+    ).render(); 
 
-    
+    //===============================================================================
+
+    // FORMS
+
+    const forms = document.querySelectorAll('form');
+
+    const message = {
+        loading: 'img/form/spinner.svg',
+        success: 'Спасибо! Скоро мы с вами свяжемся!',
+        filure: 'Что-то пошло не так...'
+    };
+
+    forms.forEach(item => {
+        postData(item);
+    });
+
+    function postData(form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const statusMessage = document.createElement('img');
+            statusMessage.src = message.loading;
+            statusMessage.style.cssText = `
+                display: block;
+                margin: 0 auto;
+            `;
+            //form.append(statusMessage);
+            form.insertAdjacentElement('afterend', statusMessage);
+
+            const request = new XMLHttpRequest();
+            request.open('POST', 'server.php');
+
+            //request.setRequestHeader('Content-type', 'multipart/form-data'); // Для метода form-data не нужно никаких заголовков
+            request.setRequestHeader('Content-type', 'application/json'); // Это при испольовании json
+            const formData = new FormData(form);
+
+           // Манипуляции для метода json
+           const object = {};
+           
+           formData.forEach(function(value, key) {
+                object[key] = value;
+           });
+           
+           const json = JSON.stringify(object);
+        
+        // ============================================== 
+            
+            //request.send(formData); // Это для formData
+            request.send(json); // Это для json
+
+            request.addEventListener('load', () => {
+                if (request.status === 200) {
+                    console.log(request.response);
+                    showTnanksModal(message.success);
+                    form.reset();
+                    statusMessage.remove();
+                   
+                }else {
+                    showTnanksModal(message.filure);
+                }
+            });
+        });
+    }
+
+    // Красивое уведомление пользователя об отправке письма
+
+    function showTnanksModal(message) {
+        const prevModalDialog = document.querySelector('.modal__dialog');
+        prevModalDialog.classList.add('hide');
+        openModal();
+
+        const thanksModal = document.createElement('div');
+        thanksModal.classList.add('modal__dialog');
+        thanksModal.innerHTML = `
+            <div class="modal__content">
+                <div class="modal__close" data-close>&times;</div>
+                <div class="modal__title">${message}</div>
+            </div>
+        `;
+       
+        document.querySelector('.modal').append(thanksModal);
+        setTimeout(() => {
+           thanksModal.remove(); 
+           prevModalDialog.classList.add('show');
+           prevModalDialog.classList.remove('hide');
+           closeModal();
+        }, 4000);
+    }
+
 
  }); // конец домконтент
