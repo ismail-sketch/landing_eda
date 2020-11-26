@@ -635,3 +635,9 @@ a {
         opacity: 1;
     }
 }
+
+.load {
+  display: block;
+  margin: 0 auto;
+  background-image: url(../img/form/spinner.svg);
+}

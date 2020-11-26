@@ -1,4 +1,7 @@
 'use strict';
+/* jslint node: true */
+/* jshint browser: true */
+/*jshint esversion: 6 */
 
 window.addEventListener('DOMContentLoaded', () => {
 
@@ -247,7 +250,7 @@ function getTimeRemaining(endtime) {
         success: 'Спасибо! Скоро мы с вами свяжемся!',
         filure: 'Что-то пошло не так...'
     };
-
+    
     forms.forEach(item => {
         postData(item);
     });
@@ -257,45 +260,50 @@ function getTimeRemaining(endtime) {
             e.preventDefault();
 
             const statusMessage = document.createElement('img');
-            statusMessage.src = message.loading;
+            //statusMessage.classList.add('.load');
             statusMessage.style.cssText = `
                 display: block;
                 margin: 0 auto;
             `;
+            statusMessage.src = message.loading;
+            
+            
             //form.append(statusMessage);
             form.insertAdjacentElement('afterend', statusMessage);
 
-            const request = new XMLHttpRequest();
-            request.open('POST', 'server.php');
+            // const request = new XMLHttpRequest(); Это устаревший метод. Вместо него лучше использовать fetch
+            // request.open('POST', 'server.php');
 
-            //request.setRequestHeader('Content-type', 'multipart/form-data'); // Для метода form-data не нужно никаких заголовков
-            request.setRequestHeader('Content-type', 'application/json'); // Это при испольовании json
+            
+
+            //request.setRequestHeader('Content-type', 'multipart/form-data'); // Когда связка  XMLHttpRequest + form-data, не нужно никаких заголовков
             const formData = new FormData(form);
 
            // Манипуляции для метода json
            const object = {};
-           
            formData.forEach(function(value, key) {
                 object[key] = value;
            });
            
-           const json = JSON.stringify(object);
-        
-        // ============================================== 
+          
             
-            //request.send(formData); // Это для formData
-            request.send(json); // Это для json
-
-            request.addEventListener('load', () => {
-                if (request.status === 200) {
-                    console.log(request.response);
-                    showTnanksModal(message.success);
-                    form.reset();
-                    statusMessage.remove();
-                   
-                }else {
-                    showTnanksModal(message.filure);
-                }
+         
+            fetch('server.php', {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json'
+                },
+                body: JSON.stringify(object)
+            })
+            .then(data => data.text())
+            .then(data => {
+                console.log(data);
+                showTnanksModal(message.success);
+                statusMessage.remove();
+            }).catch(() => {
+                showTnanksModal(message.filure);
+            }).finally(() => {
+                form.reset();
             });
         });
     }
@@ -325,5 +333,19 @@ function getTimeRemaining(endtime) {
         }, 4000);
     }
 
+    // fetch============================================================
+        // Этот код не нужен, он просто для примера:
 
- }); // конец домконтент
+//    fetch('https://jsonplaceholder.typicode.com/posts', { 
+//        method: 'POST',
+//        body: JSON.stringify({name: 'Alex'}),
+//        headers: {
+//         'Content-type': 'application/json'
+//        }
+            
+//    })
+//     .then(response => response.json())
+//     .then(json => console.log(json));
+ 
+
+}); // конец домконтент
